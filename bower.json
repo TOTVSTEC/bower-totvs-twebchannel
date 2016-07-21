@@ -1,0 +1,9 @@
+{
+  "name": "totvs-twebchannel",
+  "license": "MIT",
+  "main": "./totvs-twebchannel.js",
+  "ignore": [],
+  "dependencies": {
+  
+  }
+}
