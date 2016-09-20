@@ -1,9 +1,27 @@
 {
   "name": "totvs-twebchannel",
+  "version": "v0.0.6",
+  "description": "A JavaScript TWebChannel for TOTVS Platform",
+  "main": "totvs-twebchannel.min.js",
+  "keywords": [
+    "totvs",
+    "websocket",
+    "webchannel"
+  ],
+  "authors": [
+    "Rogerio Ribeiro da Cruz",
+    "Ricardo Mansano Godoi"
+  ],
   "license": "MIT",
-  "main": "./totvs-twebchannel.js",
-  "ignore": [],
-  "dependencies": {
-  
-  }
+  "homepage": "www.totvs.com",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "target"
+  ],
+  "endpoint": "https://github.com/TOTVSTEC/bower-totvs-twebchannel.git"
 }
