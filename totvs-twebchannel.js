@@ -436,7 +436,6 @@ var TOTVS;
                 socket.onopen = function () {
                     _this.qwebchannel = new QWebChannel(socket, function (channel) {
                         _this.dialog = channel.objects.mainDialog;
-                        // Carrega mensageria global [CSS, JavaScript]
                         _this.dialog.advplToJs.connect(function (codeType, codeContent, objectName) {
                             if (codeType == "js") {
                                 var scriptRef = document.createElement('script');
@@ -452,61 +451,88 @@ var TOTVS;
                                 document.getElementsByTagName("head")[0].appendChild(linkRef);
                             }
                         });
-                        // Executa callback
                         if (typeof callback === 'function')
                             callback();
                     });
                 };
             }
         }
-        TWebChannel.prototype.runAdvpl = function (command, onSuccess) {
-            // Formata JSON com o Bloco de Código e o callBack
+        TWebChannel.prototype.runAdvpl = function (command, callback) {
             var jsonCommand = {
                 'codeBlock': command,
-                'callBack': onSuccess.name
+                'callBack': callback
             };
-            this.dialog.jsToAdvpl("runAdvpl", JSON.stringify(jsonCommand));
+            this.dialog.jsToAdvpl("runAdvpl", command, callback);
         };
-        TWebChannel.prototype.getPicture = function (onSuccess) {
-            this.dialog.jsToAdvpl("getPicture", onSuccess.name);
+        TWebChannel.prototype.getPicture = function (callback) {
+            this.dialog.jsToAdvpl("getPicture", "", callback);
         };
-        TWebChannel.prototype.barCodeScanner = function (onSuccess) {
-            this.dialog.jsToAdvpl("barCodeScanner", onSuccess.name);
+        TWebChannel.prototype.barCodeScanner = function (callback) {
+            this.dialog.jsToAdvpl("barCodeScanner", "", callback);
         };
-        TWebChannel.prototype.pairedDevices = function (onSuccess) {
-            this.dialog.jsToAdvpl("pairedDevices", onSuccess.name);
+        TWebChannel.prototype.pairedDevices = function (callback) {
+            this.dialog.jsToAdvpl("pairedDevices", "", callback);
         };
-        TWebChannel.prototype.unlockOrientation = function () {
-            this.dialog.jsToAdvpl("unlockOrientation", "");
+        TWebChannel.prototype.unlockOrientation = function (callback) {
+            this.dialog.jsToAdvpl("unlockOrientation", "", callback);
         };
-        TWebChannel.prototype.lockOrientation = function () {
-            this.dialog.jsToAdvpl("lockOrientation", "");
+        TWebChannel.prototype.lockOrientation = function (callback) {
+            this.dialog.jsToAdvpl("lockOrientation", "", callback);
         };
-        TWebChannel.prototype.getCurrentPosition = function (onSuccess) {
-            this.dialog.jsToAdvpl("getCurrentPosition", onSuccess.name);
+        TWebChannel.prototype.getCurrentPosition = function (callback) {
+            this.dialog.jsToAdvpl("getCurrentPosition", "", callback);
         };
-        TWebChannel.prototype.testDevice = function (feature, onSuccess) {
+        TWebChannel.prototype.testDevice = function (feature, callback) {
             var jsonCommand = {
                 'testFeature': feature,
-                'callBack': onSuccess.name
+                'callBack': callback
             };
-            this.dialog.jsToAdvpl("testDevice", JSON.stringify(jsonCommand));
+            this.dialog.jsToAdvpl("testDevice", feature, callback);
         };
-        TWebChannel.prototype.createNotification = function (id, title, message) {
-            var jsonCommand = {
-                'id': id,
-                'title': title,
-                'message': message
-            };
-            this.dialog.jsToAdvpl("createNotification", JSON.stringify(jsonCommand));
+        TWebChannel.prototype.createNotification = function (options, callback) {
+            this.dialog.jsToAdvpl("createNotification", JSON.stringify(options), callback);
         };
-        TWebChannel.prototype.openSettings = function (feature, onSuccess) {
-            this.dialog.jsToAdvpl("openSettings", feature);
+        TWebChannel.prototype.openSettings = function (feature, callback) {
+            this.dialog.jsToAdvpl("openSettings", feature, callback);
         };
-        TWebChannel.prototype.jsToAdvpl = function (codeType, codeContent) {
-            this.dialog.jsToAdvpl(codeType, codeContent);
+        TWebChannel.prototype.getTempPath = function (callback) {
+            this.dialog.jsToAdvpl("getTempPath", "", callback);
         };
-        TWebChannel.version = "0.0.1";
+        TWebChannel.prototype.vibrate = function (milliseconds, callback) {
+            this.dialog.jsToAdvpl("vibrate", milliseconds.toString(), callback);
+        };
+        TWebChannel.prototype.dbGet = function (query, callback) {
+            this.dialog.jsToAdvpl("dbGet", query, callback);
+        };
+        TWebChannel.prototype.dbExec = function (query, callback) {
+            this.dialog.jsToAdvpl("dbExec", query, callback);
+        };
+        TWebChannel.prototype.dbExecuteScalar = function (query, callback) {
+            if (callback) {
+                this.dialog.jsToAdvpl("DBEXECSCALAR", query, function (data) {
+                    var json = JSON.parse(data);
+                    if (!json.data)
+                        json.data = null;
+                    callback(json);
+                });
+            }
+            else {
+                this.dialog.jsToAdvpl("DBEXECSCALAR", query, null);
+            }
+        };
+        TWebChannel.prototype.dbBegin = function (callback) {
+            this.dialog.jsToAdvpl("dbBegin", "", callback);
+        };
+        TWebChannel.prototype.dbCommit = function (callback, onError) {
+            this.dialog.jsToAdvpl("dbCommit", "", callback);
+        };
+        TWebChannel.prototype.dbRollback = function (callback) {
+            this.dialog.jsToAdvpl("dbRollback", "", callback);
+        };
+        TWebChannel.prototype.sendMessage = function (content, callback) {
+            this.dialog.jsToAdvpl("MESSAGE", content, callback);
+        };
+        TWebChannel.version = "0.0.7";
         TWebChannel.BLUETOOTH_FEATURE = 1;
         TWebChannel.NFC_FEATURE = 2;
         TWebChannel.WIFI_FEATURE = 3;
@@ -514,7 +540,7 @@ var TOTVS;
         TWebChannel.CONNECTED_WIFI = 5;
         TWebChannel.CONNECTED_MOBILE = 6;
         return TWebChannel;
-    })();
+    }());
     TOTVS.TWebChannel = TWebChannel;
 })(TOTVS || (TOTVS = {}));
 //# sourceMappingURL=totvs-twebchannel.js.map
