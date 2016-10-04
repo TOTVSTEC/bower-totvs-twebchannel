@@ -422,6 +422,12 @@ var TOTVS;
 (function (TOTVS) {
     var TWebChannel = (function () {
         function TWebChannel(port, callback) {
+            if (window['Promise'] !== undefined) {
+                this.__send = this.__send_promise;
+            }
+            else {
+                this.__send = this.__send_callback;
+            }
             this.internalWSPort = port;
             if (this.internalWSPort) {
                 var _this = this;
@@ -436,7 +442,6 @@ var TOTVS;
                 socket.onopen = function () {
                     _this.qwebchannel = new QWebChannel(socket, function (channel) {
                         _this.dialog = channel.objects.mainDialog;
-                        // Carrega mensageria global [CSS, JavaScript]
                         _this.dialog.advplToJs.connect(function (codeType, codeContent, objectName) {
                             if (codeType == "js") {
                                 var scriptRef = document.createElement('script');
@@ -452,69 +457,143 @@ var TOTVS;
                                 document.getElementsByTagName("head")[0].appendChild(linkRef);
                             }
                         });
-                        // Executa callback
                         if (typeof callback === 'function')
                             callback();
                     });
                 };
             }
         }
-        TWebChannel.prototype.runAdvpl = function (command, onSuccess) {
-            // Formata JSON com o Bloco de Código e o callBack
-            var jsonCommand = {
-                'codeBlock': command,
-                'callBack': onSuccess.name
-            };
-            this.dialog.jsToAdvpl("runAdvpl", JSON.stringify(jsonCommand));
+        TWebChannel.prototype.runAdvpl = function (command, callback) {
+            return this.__send("runAdvpl", command, callback);
         };
-        TWebChannel.prototype.getPicture = function (onSuccess) {
-            this.dialog.jsToAdvpl("getPicture", onSuccess.name);
+        TWebChannel.prototype.getPicture = function (callback) {
+            return this.__send("getPicture", "", callback);
         };
-        TWebChannel.prototype.barCodeScanner = function (onSuccess) {
-            this.dialog.jsToAdvpl("barCodeScanner", onSuccess.name);
+        TWebChannel.prototype.barCodeScanner = function (callback) {
+            return this.__send("barCodeScanner", "", callback);
         };
-        TWebChannel.prototype.pairedDevices = function (onSuccess) {
-            this.dialog.jsToAdvpl("pairedDevices", onSuccess.name);
+        TWebChannel.prototype.pairedDevices = function (callback) {
+            return this.__send("pairedDevices", "", callback);
         };
-        TWebChannel.prototype.unlockOrientation = function () {
-            this.dialog.jsToAdvpl("unlockOrientation", "");
+        TWebChannel.prototype.unlockOrientation = function (callback) {
+            return this.__send("unlockOrientation", "", callback);
         };
-        TWebChannel.prototype.lockOrientation = function () {
-            this.dialog.jsToAdvpl("lockOrientation", "");
+        TWebChannel.prototype.lockOrientation = function (callback) {
+            return this.__send("lockOrientation", "", callback);
         };
-        TWebChannel.prototype.getCurrentPosition = function (onSuccess) {
-            this.dialog.jsToAdvpl("getCurrentPosition", onSuccess.name);
+        TWebChannel.prototype.getCurrentPosition = function (callback) {
+            return this.__send("getCurrentPosition", "", callback);
         };
-        TWebChannel.prototype.testDevice = function (feature, onSuccess) {
-            var jsonCommand = {
-                'testFeature': feature,
-                'callBack': onSuccess.name
-            };
-            this.dialog.jsToAdvpl("testDevice", JSON.stringify(jsonCommand));
+        TWebChannel.prototype.testDevice = function (feature, callback) {
+            return this.__send("testDevice", String(feature), callback);
         };
-        TWebChannel.prototype.createNotification = function (id, title, message) {
-            var jsonCommand = {
-                'id': id,
-                'title': title,
-                'message': message
-            };
-            this.dialog.jsToAdvpl("createNotification", JSON.stringify(jsonCommand));
+        TWebChannel.prototype.createNotification = function (options, callback) {
+            return this.__send("createNotification", options, callback);
         };
-        TWebChannel.prototype.openSettings = function (feature, onSuccess) {
-            this.dialog.jsToAdvpl("openSettings", feature);
+        TWebChannel.prototype.openSettings = function (feature, callback) {
+            return this.__send("openSettings", String(feature), callback);
         };
-        TWebChannel.prototype.jsToAdvpl = function (codeType, codeContent) {
-            this.dialog.jsToAdvpl(codeType, codeContent);
+        TWebChannel.prototype.getTempPath = function (callback) {
+            return this.__send("getTempPath", "", callback);
         };
-        TWebChannel.version = "0.0.1";
+        TWebChannel.prototype.vibrate = function (milliseconds, callback) {
+            return this.__send("vibrate", milliseconds, callback);
+        };
+        TWebChannel.prototype.dbGet = function (query, callback) {
+            return this.__send("dbGet", query, callback);
+        };
+        TWebChannel.prototype.dbExec = function (query, callback) {
+            return this.__send("dbExec", query, callback);
+        };
+        TWebChannel.prototype.dbExecuteScalar = function (query, callback) {
+            return this.__send("DBEXECSCALAR", query, callback);
+        };
+        TWebChannel.prototype.dbBegin = function (callback) {
+            return this.__send("dbBegin", "", callback);
+        };
+        TWebChannel.prototype.dbCommit = function (callback, onError) {
+            return this.__send("dbCommit", "", callback);
+        };
+        TWebChannel.prototype.dbRollback = function (callback) {
+            return this.__send("dbRollback", "", callback);
+        };
+        TWebChannel.prototype.sendMessage = function (content, callback) {
+            return this.__send("MESSAGE", content, callback);
+        };
+        TWebChannel.prototype.__send_promise = function (id, content, onSuccess, onError) {
+            var _this = this;
+            var promise = new Promise(function (resolve, reject) {
+                try {
+                    _this.dialog.jsToAdvpl(id, _this.__JSON_stringify(content), function (data) {
+                        resolve(_this.__JSON_parse(data));
+                    });
+                }
+                catch (error) {
+                    reject(error);
+                }
+            });
+            if ((onSuccess) && (typeof onSuccess === 'function')) {
+                promise.then(onSuccess);
+            }
+            if ((onError) && (typeof onError === 'function')) {
+                promise.catch(onError);
+            }
+            return promise;
+        };
+        TWebChannel.prototype.__send_callback = function (id, content, onSuccess, onError) {
+            var _this = this;
+            try {
+                if (typeof onSuccess === 'function') {
+                    _this.dialog.jsToAdvpl(id, _this.__JSON_stringify(content), function (data) {
+                        onSuccess(_this.__JSON_parse(data));
+                    });
+                }
+                else {
+                    _this.dialog.jsToAdvpl(id, _this.__JSON_stringify(content), null);
+                }
+            }
+            catch (error) {
+                if ((onError) && (typeof onError === 'function')) {
+                    onError(error);
+                }
+                else {
+                    throw error;
+                }
+            }
+        };
+        TWebChannel.prototype.__JSON_stringify = function (data) {
+            if (data === null) {
+                return null;
+            }
+            else {
+                if ((Array.isArray(data)) || (typeof data === "object")) {
+                    return TWebChannel.JSON_FLAG + JSON.stringify(data) + TWebChannel.JSON_FLAG;
+                }
+            }
+            return data.toString();
+        };
+        TWebChannel.prototype.__JSON_parse = function (data) {
+            if (typeof data === 'string') {
+                var flag = TWebChannel.JSON_FLAG;
+                if (data.length >= (2 + (flag.length * 2))) {
+                    var begin = flag.length, end = data.length - flag.length;
+                    if ((data.substr(0, begin) === flag) && (data.substr(end) === flag)) {
+                        return JSON.parse(data.substring(begin, end));
+                    }
+                }
+            }
+            return data;
+        };
+        TWebChannel.version = "0.0.8";
         TWebChannel.BLUETOOTH_FEATURE = 1;
         TWebChannel.NFC_FEATURE = 2;
         TWebChannel.WIFI_FEATURE = 3;
         TWebChannel.LOCATION_FEATURE = 4;
         TWebChannel.CONNECTED_WIFI = 5;
         TWebChannel.CONNECTED_MOBILE = 6;
+        TWebChannel.JSON_FLAG = "#JSON#";
         return TWebChannel;
-    })();
+    }());
     TOTVS.TWebChannel = TWebChannel;
 })(TOTVS || (TOTVS = {}));
 //# sourceMappingURL=totvs-twebchannel.js.map
