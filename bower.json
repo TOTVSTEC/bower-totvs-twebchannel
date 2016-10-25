@@ -3,7 +3,6 @@
   "license": "MIT",
   "main": "./totvs-twebchannel.js",
   "ignore": [],
-  "dependencies": {
-  
-  }
+  "dependencies": {},
+  "version": "0.0.9"
 }
