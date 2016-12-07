@@ -4,5 +4,5 @@
   "main": "./totvs-twebchannel.js",
   "ignore": [],
   "dependencies": {},
-  "version": "0.0.11"
+  "version": "0.0.12"
 }
